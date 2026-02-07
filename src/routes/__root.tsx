@@ -1,8 +1,5 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-
-import Header from '../components/Header'
+import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
+import { Toaster } from 'react-hot-toast'
 
 import appCss from '../styles.css?url'
 
@@ -17,7 +14,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'QWERMap',
       },
     ],
     links: [
@@ -25,11 +22,29 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: appCss,
       },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:wght@400;500&display=swap',
+      },
     ],
   }),
 
   shellComponent: RootDocument,
+  component: RootComponent,
 })
+
+function RootComponent() {
+  return <Outlet />
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -37,19 +52,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <Header />
+      <body className="bg-surface text-text-primary font-sans">
         {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#2D2A32',
+              color: '#FDF6EC',
+              fontFamily: 'var(--font-sans)',
+              borderRadius: '12px',
+              padding: '12px 16px',
             },
-          ]}
+          }}
         />
         <Scripts />
       </body>

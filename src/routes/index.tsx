@@ -1,37 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
-import '../App.css'
+import Header from '@/components/Header'
+import MapCanvas from '@/components/MapCanvas'
+import PlaceDetailsPanel from '@/components/PlaceDetailsPanel'
+import FAB from '@/components/FAB'
+import SubmitPlaceModal from '@/components/SubmitPlaceModal'
+import SafetyLegend from '@/components/SafetyLegend'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  component: HomePage,
+})
 
-function App() {
+function HomePage() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img
-          src="/tanstack-circle-logo.png"
-          className="App-logo"
-          alt="TanStack Logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="App-link"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
+    <div className="relative h-screen w-screen overflow-hidden">
+      <Header />
+      <MapCanvas />
+      <PlaceDetailsPanel />
+      <FAB />
+      <SubmitPlaceModal />
+      <SafetyLegend />
     </div>
   )
 }
