@@ -1,24 +1,30 @@
-import { createFileRoute } from '@tanstack/react-router'
-import Header from '@/components/Header'
-import MapCanvas from '@/components/MapCanvas'
-import PlaceDetailsPanel from '@/components/PlaceDetailsPanel'
-import FAB from '@/components/FAB'
-import SubmitPlaceModal from '@/components/SubmitPlaceModal'
-import SafetyLegend from '@/components/SafetyLegend'
+import { createFileRoute } from '@tanstack/react-router';
+import Header from '@/components/Header';
+import MapCanvas from '@/components/MapCanvas';
+import PlaceDetailsPanel from '@/components/PlaceDetailsPanel';
+import FAB from '@/components/FAB';
+import SubmitPlaceModal from '@/components/SubmitPlaceModal';
+import SafetyLegend from '@/components/SafetyLegend';
+import SearchFilterPanel from '@/components/SearchFilterPanel';
+import FeaturedTab from '@/components/FeaturedTab';
+import ChatWidget from '@/components/ChatWidget';
 
 export const Route = createFileRoute('/')({
-  component: HomePage,
-})
+	component: HomePage,
+});
 
 function HomePage() {
-  return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      <Header />
-      <MapCanvas />
-      <PlaceDetailsPanel />
-      <FAB />
-      <SubmitPlaceModal />
-      <SafetyLegend />
-    </div>
-  )
+	return (
+		<div className="relative h-screen w-screen overflow-hidden">
+			<Header />
+			<MapCanvas />
+			<SearchFilterPanel />
+			<FeaturedTab />
+			<PlaceDetailsPanel />
+			<FAB />
+			<SubmitPlaceModal />
+			<SafetyLegend />
+			<ChatWidget />
+		</div>
+	);
 }

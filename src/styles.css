@@ -1,107 +1,108 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Fonts */
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+	/* Fonts */
+	--font-serif: 'Playfair Display', Georgia, serif;
+	--font-sans: 'DM Sans', system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
 
-  /* Core palette */
-  --color-cream: #FDF6EC;
-  --color-cream-light: #FFFDF8;
-  --color-cream-dark: #F5EAD8;
+	/* Core palette */
+	--color-cream: #fdf6ec;
+	--color-cream-light: #fffdf8;
+	--color-cream-dark: #f5ead8;
 
-  --color-rose: #E8A0BF;
-  --color-rose-light: #F2C4D6;
-  --color-rose-dark: #D47BA3;
+	--color-rose: #e8a0bf;
+	--color-rose-light: #f2c4d6;
+	--color-rose-dark: #d47ba3;
 
-  --color-lavender: #C3AED6;
-  --color-lavender-light: #D9CCE5;
-  --color-lavender-dark: #A98BBF;
+	--color-lavender: #c3aed6;
+	--color-lavender-light: #d9cce5;
+	--color-lavender-dark: #a98bbf;
 
-  --color-sky: #A8D8EA;
-  --color-sky-light: #C8E8F2;
-  --color-sky-dark: #7CC0D8;
+	--color-sky: #a8d8ea;
+	--color-sky-light: #c8e8f2;
+	--color-sky-dark: #7cc0d8;
 
-  --color-sage: #B5CFB7;
-  --color-sage-light: #D0E2D1;
-  --color-sage-dark: #8FB892;
+	--color-sage: #b5cfb7;
+	--color-sage-light: #d0e2d1;
+	--color-sage-dark: #8fb892;
 
-  --color-peach: #F7C59F;
-  --color-peach-light: #FBDBC2;
-  --color-peach-dark: #F0A96E;
+	--color-peach: #f7c59f;
+	--color-peach-light: #fbdbc2;
+	--color-peach-dark: #f0a96e;
 
-  --color-mauve: #957DAD;
-  --color-mauve-light: #B3A0C4;
-  --color-mauve-dark: #7A6192;
+	--color-mauve: #957dad;
+	--color-mauve-light: #b3a0c4;
+	--color-mauve-dark: #7a6192;
 
-  /* Semantic colors */
-  --color-surface: #FDF6EC;
-  --color-surface-elevated: #FFFFFF;
-  --color-text-primary: #2D2A32;
-  --color-text-secondary: #5A5462;
-  --color-text-muted: #9490A0;
-  --color-border: #E8E2D8;
-  --color-border-strong: #D1CABD;
+	/* Semantic colors */
+	--color-surface: #fdf6ec;
+	--color-surface-elevated: #ffffff;
+	--color-text-primary: #2d2a32;
+	--color-text-secondary: #5a5462;
+	--color-text-muted: #9490a0;
+	--color-border: #e8e2d8;
+	--color-border-strong: #d1cabd;
 
-  /* Safety gradient */
-  --color-safety-low: #E07A5F;
-  --color-safety-mid: #F2CC8F;
-  --color-safety-high: #81B29A;
+	/* Safety gradient */
+	--color-safety-low: #e07a5f;
+	--color-safety-mid: #f2cc8f;
+	--color-safety-high: #81b29a;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(45, 42, 50, 0.06);
-  --shadow-md: 0 4px 12px rgba(45, 42, 50, 0.08);
-  --shadow-lg: 0 8px 24px rgba(45, 42, 50, 0.12);
-  --shadow-xl: 0 16px 48px rgba(45, 42, 50, 0.16);
+	/* Shadows */
+	--shadow-sm: 0 1px 2px rgba(45, 42, 50, 0.06);
+	--shadow-md: 0 4px 12px rgba(45, 42, 50, 0.08);
+	--shadow-lg: 0 8px 24px rgba(45, 42, 50, 0.12);
+	--shadow-xl: 0 16px 48px rgba(45, 42, 50, 0.16);
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms ease;
+	/* Transitions */
+	--transition-fast: 150ms ease;
+	--transition-base: 250ms ease;
+	--transition-slow: 400ms ease;
 }
 
 /* Base styles */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background-color: var(--color-surface);
+	color: var(--color-text-primary);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 /* Mapbox overrides for retro-modern theme */
 .mapboxgl-popup-content {
-  font-family: var(--font-sans);
-  border-radius: 12px;
-  box-shadow: var(--shadow-lg);
-  padding: 0;
+	font-family: var(--font-sans);
+	border-radius: 12px;
+	box-shadow: var(--shadow-lg);
+	padding: 0;
 }
 
 .mapboxgl-ctrl-group {
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-md) !important;
-  overflow: hidden;
+	border-radius: 12px !important;
+	box-shadow: var(--shadow-md) !important;
+	overflow: hidden;
 }
 
 .mapboxgl-ctrl-group button {
-  border: none !important;
+	border: none !important;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+	width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+	background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-strong);
-  border-radius: 3px;
+	background: var(--color-border-strong);
+	border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+	background: var(--color-text-muted);
 }
