@@ -6,13 +6,17 @@ import { cn } from '@/lib/utils';
 
 export default function FAB() {
 	const setLeftPanelTab = useUIStore((s) => s.setLeftPanelTab);
+	const mobileDrawerOpen = useUIStore((s) => s.mobileDrawerOpen);
 	const [isHovered, setIsHovered] = useState(false);
 
 	return (
 		<div
 			className={cn(
-				'fixed bottom-6 z-30 flex items-center',
-				'right-6 lg:right-[calc(28rem+1.5rem)]'
+				'fixed z-30 flex items-center',
+				mobileDrawerOpen
+					? 'bottom-[calc(60vh+1rem)]'
+					: 'bottom-6',
+				'right-6 lg:right-[calc(28rem+1.5rem)] lg:bottom-6'
 			)}
 			style={{ transition: 'right 0.3s ease' }}
 		>

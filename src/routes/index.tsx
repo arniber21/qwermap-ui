@@ -6,6 +6,7 @@ import SafetyLegend from '@/components/SafetyLegend';
 import LeftDockPanel from '@/components/LeftDockPanel';
 import RightTopPanel from '@/components/RightTopPanel';
 import AboutModal from '@/components/AboutModal';
+import MobileDrawer from '@/components/MobileDrawer';
 
 export const Route = createFileRoute('/')({
 	component: HomePage,
@@ -18,6 +19,7 @@ function HomePage() {
 			<MapCanvas />
 			<LeftDockPanel />
 			<RightTopPanel />
+			<MobileDrawer />
 			<FAB />
 			<SafetyLegend />
 			<AboutModal />

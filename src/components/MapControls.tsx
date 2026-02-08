@@ -1,6 +1,7 @@
 import { Box, Minus, Plus, Compass } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 import { useMapStore } from '@/store/map-store';
+import { useUIStore } from '@/store/ui-store';
 import { cn } from '@/lib/utils';
 
 interface MapControlsProps {
@@ -10,6 +11,7 @@ interface MapControlsProps {
 export default function MapControls({ mapRef }: MapControlsProps) {
 	const is3D = useMapStore((s) => s.is3D);
 	const toggle3D = useMapStore((s) => s.toggle3D);
+	const mobileDrawerOpen = useUIStore((s) => s.mobileDrawerOpen);
 
 	const handleZoomIn = () => {
 		mapRef.current?.zoomIn();
@@ -24,7 +26,15 @@ export default function MapControls({ mapRef }: MapControlsProps) {
 	};
 
 	return (
-		<div className="fixed bottom-24 right-6 lg:right-[calc(28rem+1.5rem)] z-30 flex flex-col gap-2">
+		<div
+			className={cn(
+				'fixed z-30 flex flex-col gap-2',
+				mobileDrawerOpen
+					? 'bottom-[calc(60vh+5rem)]'
+					: 'bottom-24',
+				'right-6 lg:right-[calc(28rem+1.5rem)] lg:bottom-24'
+			)}
+		>
 			<div className="bg-surface-elevated/90 backdrop-blur-md border border-border shadow-lg rounded-2xl overflow-hidden">
 				<button
 					onClick={handleZoomIn}

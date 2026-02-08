@@ -4,7 +4,7 @@ import ChatWidget from '@/components/ChatWidget';
 export default function RightTopPanel() {
 	return (
 		<aside
-			className="fixed top-20 right-6 z-30 w-[24rem] max-w-full"
+			className="hidden lg:block fixed top-20 right-6 z-30 w-[24rem] max-w-full"
 			aria-label="Featured places and chat"
 		>
 			<div className="bg-surface-elevated/90 backdrop-blur-md rounded-3xl shadow-xl border border-border overflow-hidden">

@@ -13,7 +13,7 @@ export default function SafetyLegend() {
 					initial="hidden"
 					animate="visible"
 					exit="exit"
-					className="fixed bottom-6 left-[calc(28rem+1.5rem)] z-30 bg-surface-elevated/90 backdrop-blur-md rounded-2xl shadow-md border border-border px-4 py-3"
+					className="fixed bottom-6 left-6 lg:left-[calc(28rem+1.5rem)] z-30 bg-surface-elevated/90 backdrop-blur-md rounded-2xl shadow-md border border-border px-4 py-3"
 				>
 					<p className="text-xs font-medium text-text-secondary mb-2">
 						Safety Heatmap
