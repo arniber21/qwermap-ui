@@ -20,7 +20,6 @@ function HomePage() {
 			<LeftDockPanel />
 			<RightTopPanel />
 			<MobileDrawer />
-			<FAB />
 			<SafetyLegend />
 			<AboutModal />
 		</div>

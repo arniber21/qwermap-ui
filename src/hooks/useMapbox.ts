@@ -19,7 +19,7 @@ export function useMapbox(
 
 		const map = new mapboxgl.Map({
 			container: containerRef.current,
-			style: 'mapbox://styles/mapbox/light-v11',
+			style: 'mapbox://styles/mapbox/standard',
 			center: [DEFAULT_CENTER.lng, DEFAULT_CENTER.lat],
 			zoom: DEFAULT_ZOOM,
 			pitch: initial3D ? 45 : 0,

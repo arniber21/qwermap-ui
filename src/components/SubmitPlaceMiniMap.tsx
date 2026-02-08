@@ -26,7 +26,7 @@ export default function SubmitPlaceMiniMap({
 
 		const map = new mapboxgl.Map({
 			container: containerRef.current,
-			style: 'mapbox://styles/mapbox/light-v11',
+			style: 'mapbox://styles/mapbox/standard',
 			center,
 			zoom: 14,
 			attributionControl: false,

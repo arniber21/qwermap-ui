@@ -4,7 +4,12 @@ import { submitPlace } from '@/api/places';
 import { getFingerprint } from '@/lib/fingerprint';
 import { usePlacesStore } from '@/store/places-store';
 import { useSubmissionStore } from '@/store/submission-store';
-import type { PlaceSubmission, Category, PlaceType } from '@/types/places';
+import type {
+	PlaceSubmission,
+	Category,
+	PlaceType,
+	StillExists,
+} from '@/types/places';
 
 interface FormData {
 	name: string;
@@ -15,6 +20,9 @@ interface FormData {
 	address: string;
 	photoUrl: string;
 	location: { lng: number; lat: number } | null;
+	year_opened: string;
+	year_closed: string;
+	still_exists: StillExists | '';
 }
 
 const INITIAL_FORM: FormData = {
@@ -26,6 +34,9 @@ const INITIAL_FORM: FormData = {
 	address: '',
 	photoUrl: '',
 	location: null,
+	year_opened: '',
+	year_closed: '',
+	still_exists: '',
 };
 
 interface FormErrors {
@@ -68,6 +79,13 @@ export function useSubmitPlace() {
 
 		try {
 			const fingerprint = await getFingerprint();
+			const yearOpened = form.year_opened
+				? parseInt(form.year_opened, 10)
+				: undefined;
+			const yearClosed = form.year_closed
+				? parseInt(form.year_closed, 10)
+				: undefined;
+
 			const submission: PlaceSubmission = {
 				name: form.name.trim(),
 				category: form.category as Category,
@@ -82,6 +100,16 @@ export function useSubmitPlace() {
 				photos: form.photoUrl.trim()
 					? [form.photoUrl.trim()]
 					: undefined,
+				year_opened:
+					yearOpened && !isNaN(yearOpened)
+						? yearOpened
+						: undefined,
+				year_closed:
+					yearClosed && !isNaN(yearClosed)
+						? yearClosed
+						: undefined,
+				still_exists:
+					(form.still_exists as StillExists) || undefined,
 			};
 
 			const result = await submitPlace(submission, fingerprint);

@@ -28,14 +28,14 @@ export default function MapControls({ mapRef }: MapControlsProps) {
 	return (
 		<div
 			className={cn(
-				'fixed z-30 flex flex-col gap-2',
+				'fixed z-30 flex flex-col items-center gap-2',
 				mobileDrawerOpen
 					? 'bottom-[calc(60vh+5rem)]'
-					: 'bottom-24',
-				'right-6 lg:right-[calc(28rem+1.5rem)] lg:bottom-24'
+					: 'bottom-4',
+				'right-6 lg:right-[calc(28rem+1.5rem)] lg:bottom-4'
 			)}
 		>
-			<div className="bg-surface-elevated/90 backdrop-blur-md border border-border shadow-lg rounded-2xl overflow-hidden">
+			<div className="max-w-min flex flex-col bg-surface-elevated/90 backdrop-blur-md border border-border shadow-lg rounded-2xl overflow-hidden">
 				<button
 					onClick={handleZoomIn}
 					className="w-10 h-10 flex items-center justify-center text-text-primary hover:bg-cream-dark transition-colors cursor-pointer"
@@ -72,7 +72,7 @@ export default function MapControls({ mapRef }: MapControlsProps) {
 				aria-label="Toggle 3D mode"
 			>
 				<Box size={14} />
-				<span>{is3D ? '3D On' : '3D Off'}</span>
+				<span>{is3D ? '3D' : '2D'}</span>
 			</button>
 		</div>
 	);

@@ -10,7 +10,7 @@ import { useSubmitPlace } from '@/hooks/useSubmitPlace';
 import { CATEGORY_CONFIG } from '@/data/categories';
 import { cn } from '@/lib/utils';
 import { slideRight } from '@/lib/motion';
-import type { Category, PlaceType } from '@/types/places';
+import type { Category, PlaceType, StillExists } from '@/types/places';
 
 const CATEGORY_OPTIONS = Object.entries(CATEGORY_CONFIG).map(
 	([value, cfg]) => ({
@@ -22,6 +22,13 @@ const CATEGORY_OPTIONS = Object.entries(CATEGORY_CONFIG).map(
 const TYPE_OPTIONS = [
 	{ value: 'current', label: 'Currently Active' },
 	{ value: 'historical', label: 'Historical Site' },
+];
+
+const STILL_EXISTS_OPTIONS = [
+	{ value: 'yes', label: 'Yes – Still Standing' },
+	{ value: 'no', label: 'No – Demolished/Gone' },
+	{ value: 'partial', label: 'Partially Remains' },
+	{ value: 'unknown', label: 'Unknown' },
 ];
 
 interface SubmitPlacePanelProps {
@@ -112,12 +119,40 @@ export default function SubmitPlacePanel({
 				</div>
 
 				{form.place_type === 'historical' && (
-					<Input
-						label="Era"
-						placeholder="e.g., 1960s-1980s"
-						value={form.era}
-						onChange={(e) => updateField('era', e.target.value)}
-					/>
+					<>
+						<div className="grid grid-cols-2 gap-3">
+							<Input
+								label="Year Opened"
+								placeholder="e.g., 1969"
+								type="number"
+								value={form.year_opened}
+								onChange={(e) =>
+									updateField('year_opened', e.target.value)
+								}
+							/>
+							<Input
+								label="Year Closed"
+								placeholder="e.g., 2015"
+								type="number"
+								value={form.year_closed}
+								onChange={(e) =>
+									updateField('year_closed', e.target.value)
+								}
+							/>
+						</div>
+						<Select
+							label="Still Exists?"
+							options={STILL_EXISTS_OPTIONS}
+							placeholder="Select..."
+							value={form.still_exists}
+							onChange={(e) =>
+								updateField(
+									'still_exists',
+									e.target.value as StillExists
+								)
+							}
+						/>
+					</>
 				)}
 
 				<Textarea

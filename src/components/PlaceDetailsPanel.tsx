@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
-import { X, ThumbsUp, Navigation, Clock, MapPin } from 'lucide-react';
+import {
+	X,
+	ThumbsUp,
+	Navigation,
+	Clock,
+	MapPin,
+	Users,
+	ExternalLink,
+	Award,
+	Building2,
+	ChevronDown,
+	ChevronUp,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlacesStore } from '@/store/places-store';
 import { useUpvote } from '@/hooks/useUpvote';
@@ -9,6 +21,12 @@ import SafetyGauge from '@/components/ui/SafetyGauge';
 import TxLink from '@/components/ui/TxLink';
 import { cn, formatDate } from '@/lib/utils';
 import { slideRight } from '@/lib/motion';
+
+function humanizeTag(tag: string): string {
+	return tag
+		.replace(/_/g, ' ')
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface PlaceDetailsPanelProps {
 	embedded?: boolean;
@@ -24,6 +42,7 @@ export default function PlaceDetailsPanel({
 	const { selectedPlace, detailLoading, setSelectedPlace } = usePlacesStore();
 	const { handleUpvote, isUpvoted } = useUpvote();
 	const [expanded, setExpanded] = useState(false);
+	const [eventsExpanded, setEventsExpanded] = useState(false);
 
 	const isOpen = embedded
 		? selectedPlace !== null || detailLoading || showPlaceholder
@@ -38,9 +57,10 @@ export default function PlaceDetailsPanel({
 		return () => document.removeEventListener('keydown', handler);
 	}, [isOpen, setSelectedPlace]);
 
-	// Reset expanded when place changes
+	// Reset expanded states when place changes
 	useEffect(() => {
 		setExpanded(false);
+		setEventsExpanded(false);
 	}, [selectedPlace?.id]);
 
 	const place = selectedPlace;
@@ -120,10 +140,12 @@ export default function PlaceDetailsPanel({
 								<h2 className="font-serif text-2xl font-semibold text-text-primary leading-tight">
 									{place.name}
 								</h2>
-								{place.era && (
+								{(place.year_opened || place.era) && (
 									<p className="text-sm italic text-text-muted mt-1 flex items-center gap-1">
 										<Clock size={13} />
-										{place.era}
+										{place.year_opened
+											? `${place.year_opened}–${place.year_closed ?? (place.still_exists === 'yes' ? 'present' : '?')}`
+											: place.era}
 									</p>
 								)}
 							</div>
@@ -151,6 +173,37 @@ export default function PlaceDetailsPanel({
 									? 'Historical'
 									: 'Active'}
 							</Badge>
+							{place.significance && (
+								<Badge color="text-indigo-800" bgColor="bg-indigo-100">
+									<Award size={12} />
+									{humanizeTag(place.significance)} Significance
+								</Badge>
+							)}
+							{place.still_exists && place.still_exists !== 'unknown' && (
+								<Badge
+									color={
+										place.still_exists === 'yes'
+											? 'text-emerald-800'
+											: place.still_exists === 'partial'
+												? 'text-amber-800'
+												: 'text-red-800'
+									}
+									bgColor={
+										place.still_exists === 'yes'
+											? 'bg-emerald-100'
+											: place.still_exists === 'partial'
+												? 'bg-amber-100'
+												: 'bg-red-100'
+									}
+								>
+									<Building2 size={12} />
+									{place.still_exists === 'yes'
+										? 'Still Standing'
+										: place.still_exists === 'partial'
+											? 'Partially Remains'
+											: 'No Longer Exists'}
+								</Badge>
+							)}
 						</div>
 
 						{/* Description */}
@@ -191,6 +244,160 @@ export default function PlaceDetailsPanel({
 										Get directions
 									</a>
 								</div>
+							</div>
+						)}
+
+						{/* Events Timeline */}
+						{place.events && place.events.length > 0 && (
+							<div className="border-t border-border pt-4">
+								<p className="text-xs uppercase tracking-wide text-text-muted mb-3">
+									Key Events
+								</p>
+								<div className="relative pl-4 border-l-2 border-lavender/40 flex flex-col gap-3">
+									{(eventsExpanded
+										? place.events
+										: place.events.slice(0, 3)
+									).map((event, i) => (
+										<div key={i} className="relative">
+											<div className="absolute -left-[1.3rem] top-1 w-2.5 h-2.5 rounded-full bg-mauve border-2 border-surface-elevated" />
+											<p className="text-sm font-medium text-text-primary">
+												{event.title}
+											</p>
+											{event.date && (
+												<p className="text-xs text-text-muted">
+													{event.date}
+												</p>
+											)}
+											{event.description && (
+												<p className="text-xs text-text-secondary mt-0.5 leading-relaxed">
+													{event.description}
+												</p>
+											)}
+											{event.source_url && (
+												<a
+													href={event.source_url}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="inline-flex items-center gap-1 text-xs text-mauve hover:text-mauve-dark mt-0.5"
+												>
+													<ExternalLink size={10} />
+													Source
+												</a>
+											)}
+										</div>
+									))}
+								</div>
+								{place.events.length > 3 && (
+									<button
+										onClick={() =>
+											setEventsExpanded(!eventsExpanded)
+										}
+										className="flex items-center gap-1 text-xs text-mauve hover:text-mauve-dark mt-2 cursor-pointer"
+									>
+										{eventsExpanded ? (
+											<>
+												<ChevronUp size={12} /> Show
+												fewer
+											</>
+										) : (
+											<>
+												<ChevronDown size={12} /> Show
+												all {place.events.length} events
+											</>
+										)}
+									</button>
+								)}
+							</div>
+						)}
+
+						{/* Related Figures */}
+						{place.related_figures &&
+							place.related_figures.length > 0 && (
+								<div className="border-t border-border pt-4">
+									<p className="text-xs uppercase tracking-wide text-text-muted mb-3">
+										<Users
+											size={12}
+											className="inline mr-1"
+										/>
+										Related Figures
+									</p>
+									<div className="flex flex-col gap-2">
+										{place.related_figures.map(
+											(figure, i) => (
+												<div
+													key={i}
+													className="rounded-xl bg-cream-light/60 border border-border px-3 py-2"
+												>
+													<div className="flex items-center gap-2">
+														<span className="text-sm font-medium text-text-primary">
+															{figure.name}
+														</span>
+														{figure.role && (
+															<Badge
+																color="text-mauve"
+																bgColor="bg-lavender-light"
+															>
+																{figure.role}
+															</Badge>
+														)}
+													</div>
+													{figure.description && (
+														<p className="text-xs text-text-secondary mt-1 leading-relaxed">
+															{figure.description}
+														</p>
+													)}
+												</div>
+											)
+										)}
+									</div>
+								</div>
+							)}
+
+						{/* Movement & Community Tags */}
+						{((place.movements && place.movements.length > 0) ||
+							(place.community_tags &&
+								place.community_tags.length > 0)) && (
+							<div className="border-t border-border pt-4 flex flex-col gap-3">
+								{place.movements &&
+									place.movements.length > 0 && (
+										<div>
+											<p className="text-xs uppercase tracking-wide text-text-muted mb-2">
+												Movements
+											</p>
+											<div className="flex flex-wrap gap-1.5">
+												{place.movements.map((m) => (
+													<Badge
+														key={m}
+														color="text-rose-800"
+														bgColor="bg-rose-100"
+													>
+														{humanizeTag(m)}
+													</Badge>
+												))}
+											</div>
+										</div>
+									)}
+								{place.community_tags &&
+									place.community_tags.length > 0 && (
+										<div>
+											<p className="text-xs uppercase tracking-wide text-text-muted mb-2">
+												Communities
+											</p>
+											<div className="flex flex-wrap gap-1.5">
+												{place.community_tags.map(
+													(t) => (
+														<Badge
+															key={t}
+															color="text-violet-800"
+															bgColor="bg-violet-100"
+														>
+															{humanizeTag(t)}
+														</Badge>
+													)
+												)}
+											</div>
+										</div>
+									)}
 							</div>
 						)}
 

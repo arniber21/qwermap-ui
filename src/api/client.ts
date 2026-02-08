@@ -1,21 +1,53 @@
-export function delay(min = 300, max = 800): Promise<void> {
-	const ms = Math.floor(Math.random() * (max - min + 1)) + min;
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { API_BASE_URL } from '@/lib/constants';
+import type { ApiError } from '@/types/api';
 
-const BASE58_CHARS =
-	'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+class ApiClient {
+	private baseUrl: string;
 
-export function fakeTxId(): string {
-	let result = '';
-	for (let i = 0; i < 44; i++) {
-		result += BASE58_CHARS[Math.floor(Math.random() * BASE58_CHARS.length)];
+	constructor(baseUrl: string) {
+		this.baseUrl = baseUrl;
 	}
-	return result;
+
+	async get<T>(
+		path: string,
+		params?: Record<string, string | number | undefined>,
+	): Promise<T> {
+		const url = new URL(this.baseUrl + path);
+		if (params) {
+			for (const [key, value] of Object.entries(params)) {
+				if (value !== undefined) {
+					url.searchParams.set(key, String(value));
+				}
+			}
+		}
+
+		const res = await fetch(url.toString());
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}));
+			throw body as ApiError;
+		}
+		return res.json() as Promise<T>;
+	}
+
+	async post<T>(
+		path: string,
+		body?: unknown,
+		headers?: Record<string, string>,
+	): Promise<T> {
+		const res = await fetch(this.baseUrl + path, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...headers,
+			},
+			body: body !== undefined ? JSON.stringify(body) : undefined,
+		});
+		if (!res.ok) {
+			const errBody = await res.json().catch(() => ({}));
+			throw errBody as ApiError;
+		}
+		return res.json() as Promise<T>;
+	}
 }
 
-let idCounter = 100;
-
-export function nextPlaceId(): string {
-	return `place-${String(++idCounter).padStart(3, '0')}`;
-}
+export const api = new ApiClient(API_BASE_URL);

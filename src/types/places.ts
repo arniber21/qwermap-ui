@@ -17,6 +17,22 @@ export type Category =
 
 export type ModerationStatus = 'pending' | 'approved' | 'rejected';
 
+export type Significance = 'local' | 'regional' | 'national' | 'international';
+export type StillExists = 'yes' | 'no' | 'partial' | 'unknown';
+
+export interface HistoricalEvent {
+	title: string;
+	date?: string;
+	description?: string;
+	source_url?: string;
+}
+
+export interface RelatedFigure {
+	name: string;
+	role?: string;
+	description?: string;
+}
+
 export interface PlaceSummary {
 	id: string;
 	transaction_id: string;
@@ -29,6 +45,9 @@ export interface PlaceSummary {
 	distance_meters?: number;
 	status: ModerationStatus;
 	created_at: string;
+	movements?: string[];
+	significance?: Significance;
+	still_exists?: StillExists;
 }
 
 export interface PlaceDetail extends PlaceSummary {
@@ -42,6 +61,12 @@ export interface PlaceDetail extends PlaceSummary {
 		raw_data: Record<string, unknown>;
 	};
 	indexed_at?: string;
+	events?: HistoricalEvent[];
+	related_figures?: RelatedFigure[];
+	community_tags?: string[];
+	site_types?: string[];
+	year_opened?: number;
+	year_closed?: number;
 }
 
 export interface PlaceSubmission {
@@ -54,6 +79,9 @@ export interface PlaceSubmission {
 	photos?: string[];
 	address?: string;
 	additional_info?: Record<string, unknown>;
+	year_opened?: number;
+	year_closed?: number;
+	still_exists?: StillExists;
 }
 
 export interface SubmitPlaceResponse {
