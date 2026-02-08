@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { MessageCircle, X, Send, Loader2, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatStore } from '@/store/chat-store';
@@ -12,6 +12,69 @@ interface DisplayMessage {
 	role: 'user' | 'assistant' | 'tool';
 	content: string;
 	toolName?: string;
+}
+
+const INITIAL_SUGGESTIONS = [
+	[
+		'What happened at Stonewall?',
+		'Show me lesbian bars in NYC',
+		'Who was Harvey Milk?',
+		'Timeline of the 1960s',
+	],
+	[
+		'Explore the AIDS activism movement',
+		'Find trans rights sites',
+		'Show me places in San Francisco',
+		'Who was Marsha P. Johnson?',
+	],
+	[
+		'Find BIPOC queer spaces',
+		'Historical bookstores',
+		'Show me community centers in Miami',
+		'What happened in the 1970s?',
+	],
+];
+
+function getFollowUpSuggestions(
+	lastAssistantMsg: string,
+	toolsUsed: string[]
+): string[] {
+	const msg = lastAssistantMsg.toLowerCase();
+	const suggestions: string[] = [];
+
+	// After movement exploration
+	if (toolsUsed.includes('exploreMovement')) {
+		suggestions.push('Show me another movement', 'Tell me more about one of these places');
+	}
+	// After figure search
+	if (toolsUsed.includes('findFigures')) {
+		suggestions.push('Fly to their place', 'Find more activists');
+	}
+	// After timeline browsing
+	if (toolsUsed.includes('browseTimeline')) {
+		suggestions.push('Show me the next decade', 'Tell me more about one of these events');
+	}
+	// After place details
+	if (toolsUsed.includes('getPlaceDetails') || toolsUsed.includes('flyToPlace')) {
+		suggestions.push('Show the safety heatmap', 'Find similar places nearby');
+	}
+	// After search
+	if (toolsUsed.includes('searchPlaces') || toolsUsed.includes('filterByCommunity')) {
+		suggestions.push('Fly to the first result', 'Search in another city');
+	}
+
+	// City-based follow-ups from content
+	if (msg.includes('los angeles') || msg.includes(' la ')) suggestions.push('Now show me SF');
+	else if (msg.includes('san francisco') || msg.includes(' sf ')) suggestions.push('Now show me NYC');
+	else if (msg.includes('new york') || msg.includes(' nyc ')) suggestions.push('Now show me Miami');
+	else if (msg.includes('miami')) suggestions.push('Now show me LA');
+
+	// Default fallbacks
+	if (suggestions.length < 2) {
+		suggestions.push('Explore the Stonewall movement', 'Browse the 1960s timeline');
+	}
+
+	return suggestions.slice(0, 3);
 }
 
 interface ChatWidgetProps {
@@ -37,16 +100,27 @@ export default function ChatWidget({
 			id: 'welcome',
 			role: 'assistant',
 			content:
-				"Hi! I'm your QWERMap guide. Ask me to find places, show the safety map, or explore LGBTQ+ history in LA.",
+				"Hi! I'm your QWERMap guide. Ask me to find places, explore movements, discover historical figures, or browse LGBTQ+ history across LA, SF, NYC, and Miami.",
 		},
 	]);
 	const [chatHistory, setChatHistory] = useState<SimpleChatMessage[]>([]);
 	const [input, setInput] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [suggestions, setSuggestions] = useState<string[]>([]);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const open = embedded ? true : isOpen;
+
+	// Pick a stable random set of initial suggestions
+	const initialSuggestions = useMemo(
+		() => INITIAL_SUGGESTIONS[Math.floor(Math.random() * INITIAL_SUGGESTIONS.length)],
+		[]
+	);
+
+	// Show initial suggestions when no messages have been sent yet
+	const showInitialSuggestions = chatHistory.length === 0 && !loading;
+	const activeSuggestions = showInitialSuggestions ? initialSuggestions : suggestions;
 
 	// Auto-scroll to bottom
 	useEffect(() => {
@@ -62,84 +136,95 @@ export default function ChatWidget({
 		}
 	}, [open]);
 
-	const handleSend = useCallback(async () => {
-		const text = input.trim();
-		if (!text || loading) return;
+	const handleSend = useCallback(
+		async (overrideText?: string) => {
+			const text = (overrideText ?? input).trim();
+			if (!text || loading) return;
 
-		setInput('');
-		setLoading(true);
+			setInput('');
+			setSuggestions([]);
+			setLoading(true);
 
-		// Add user message to both display and history
-		const userDisplayMsg: DisplayMessage = {
-			id: nextId(),
-			role: 'user',
-			content: text,
-		};
-		setDisplayMessages((prev) => [...prev, userDisplayMsg]);
+			// Add user message to both display and history
+			const userDisplayMsg: DisplayMessage = {
+				id: nextId(),
+				role: 'user',
+				content: text,
+			};
+			setDisplayMessages((prev) => [...prev, userDisplayMsg]);
 
-		const newHistory: SimpleChatMessage[] = [
-			...chatHistory,
-			{ role: 'user', content: text },
-		];
-		setChatHistory(newHistory);
+			const newHistory: SimpleChatMessage[] = [
+				...chatHistory,
+				{ role: 'user', content: text },
+			];
+			setChatHistory(newHistory);
 
-		try {
-			const result = await sendChatMessage(newHistory);
+			try {
+				const result = await sendChatMessage(newHistory);
 
-			if (result.error) {
+				if (result.error) {
+					setDisplayMessages((prev) => [
+						...prev,
+						{
+							id: nextId(),
+							role: 'assistant',
+							content: result.error!,
+						},
+					]);
+					setLoading(false);
+					return;
+				}
+
+				const usedToolNames = result.toolsUsed.map((t) => t.name);
+
+				// Show tool calls
+				for (const tool of result.toolsUsed) {
+					setDisplayMessages((prev) => [
+						...prev,
+						{
+							id: nextId(),
+							role: 'tool',
+							content: tool.result,
+							toolName: tool.name,
+						},
+					]);
+				}
+
+				// Show assistant response
+				if (result.text) {
+					setDisplayMessages((prev) => [
+						...prev,
+						{
+							id: nextId(),
+							role: 'assistant',
+							content: result.text,
+						},
+					]);
+					setChatHistory((prev) => [
+						...prev,
+						{ role: 'assistant', content: result.text },
+					]);
+
+					// Generate follow-up suggestions
+					setSuggestions(
+						getFollowUpSuggestions(result.text, usedToolNames)
+					);
+				}
+			} catch {
 				setDisplayMessages((prev) => [
 					...prev,
 					{
 						id: nextId(),
 						role: 'assistant',
-						content: result.error!,
+						content: 'Something went wrong. Please try again.',
 					},
 				]);
+			} finally {
 				setLoading(false);
-				return;
 			}
-
-			// Show tool calls
-			for (const tool of result.toolsUsed) {
-				setDisplayMessages((prev) => [
-					...prev,
-					{
-						id: nextId(),
-						role: 'tool',
-						content: tool.result,
-						toolName: tool.name,
-					},
-				]);
-			}
-
-			// Show assistant response
-			if (result.text) {
-				setDisplayMessages((prev) => [
-					...prev,
-					{
-						id: nextId(),
-						role: 'assistant',
-						content: result.text,
-					},
-				]);
-				setChatHistory((prev) => [
-					...prev,
-					{ role: 'assistant', content: result.text },
-				]);
-			}
-		} catch {
-			setDisplayMessages((prev) => [
-				...prev,
-				{
-					id: nextId(),
-					role: 'assistant',
-					content: 'Something went wrong. Please try again.',
-				},
-			]);
-		} finally {
-			setLoading(false);
-		}
-	}, [input, loading, chatHistory]);
+		},
+		[input, loading, chatHistory]
+	);
 
 	const Window = (
 		<div
@@ -210,6 +295,30 @@ export default function ChatWidget({
 						Thinking...
 					</div>
 				)}
+
+				{/* Suggestion chips */}
+				{!loading && activeSuggestions.length > 0 && (
+					<div className="flex flex-wrap gap-1.5 pt-1">
+						{activeSuggestions.map((suggestion) => (
+							<motion.button
+								key={suggestion}
+								initial={{ opacity: 0, y: 4 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+								onClick={() => handleSend(suggestion)}
+								className={cn(
+									'px-3 py-1.5 rounded-full text-xs font-medium',
+									'border border-mauve/30 text-mauve bg-lavender-light/40',
+									'hover:bg-lavender-light hover:border-mauve/50',
+									'transition-colors cursor-pointer',
+									'text-left'
+								)}
+							>
+								{suggestion}
+							</motion.button>
+						))}
+					</div>
+				)}
 			</div>
 
 			{/* Input */}
@@ -227,7 +336,7 @@ export default function ChatWidget({
 						className="flex-1 px-3 py-2 rounded-xl bg-cream-dark border border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-mauve/40"
 					/>
 					<button
-						onClick={handleSend}
+						onClick={() => handleSend()}
 						disabled={loading}
 						className="w-9 h-9 rounded-xl bg-mauve text-white flex items-center justify-center hover:bg-mauve-dark transition-colors disabled:opacity-70"
 						aria-label="Send message"

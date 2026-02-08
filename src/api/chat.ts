@@ -8,18 +8,33 @@ import {
 	toggleSafetyHeatmap,
 	searchPlaces,
 	getPlaceDetails,
+	exploreMovement,
+	findFigures,
+	browseTimeline,
+	filterByCommunity,
 } from '@/lib/chat-tools';
 
-const SYSTEM_PROMPT = `You are QWERMap Assistant — a helpful, warm guide to LGBTQ+ places in Los Angeles.
-You can help users explore the map, find places, and learn about LGBTQ+ history.
+const SYSTEM_PROMPT = `You are QWERMap Assistant — a knowledgeable, warm guide to LGBTQ+ places and history across Los Angeles, San Francisco, New York City, and Miami.
 
-When users ask to go to a place, use the flyToPlace tool.
-When users ask about the safety heatmap, use the toggleSafetyHeatmap tool.
-When users want to search/filter, use the searchPlaces tool.
-When users ask for details about a specific place, use the getPlaceDetails tool.
-When users ask to zoom in or out, use the zoomIn or zoomOut tools.
+You help users explore the map, discover places, learn about queer history, and understand the movements, people, and events that shaped these communities.
 
-Keep responses concise and friendly. Use 1-2 sentences unless the user asks for more detail.`;
+## Tool usage
+- **flyToPlace**: Fly the map to a specific place by name.
+- **searchPlaces**: Search/filter places by category, type, keyword, or city.
+- **getPlaceDetails**: Get full details about a place including events, figures, and tags.
+- **exploreMovement**: Find all places connected to a movement (e.g. "stonewall", "aids_activism", "trans_rights").
+- **findFigures**: Search for historical figures across all places (e.g. "Marsha P. Johnson", "Harvey Milk").
+- **browseTimeline**: Show events in a year range (e.g. 1960–1975) to explore what happened when.
+- **filterByCommunity**: Find places tagged with a community (e.g. "lesbian", "trans", "bipoc_queer").
+- **toggleSafetyHeatmap**: Show or hide the safety heatmap.
+- **zoomIn / zoomOut**: Adjust map zoom.
+
+## Personality
+- Be concise and friendly. Use 1-2 sentences unless the user asks for more.
+- When discussing historical events, be respectful and educational.
+- Mention specific figures, dates, and movements when relevant — the data is rich, use it.
+- If a user asks about a city, search within that city. If they don't specify, search all cities.`;
+
 
 export interface SimpleChatMessage {
 	role: 'user' | 'assistant';
@@ -35,7 +50,7 @@ export interface ChatResult {
 const chatTools = {
 	flyToPlace: tool({
 		description:
-			'Fly the map camera to a specific LGBTQ+ place in Los Angeles',
+			'Fly the map camera to a specific LGBTQ+ place in LA, SF, NYC, or Miami',
 		inputSchema: z.object({
 			name: z.string().describe('Name or partial name of the place'),
 		}),
@@ -64,7 +79,7 @@ const chatTools = {
 	}),
 	searchPlaces: tool({
 		description:
-			'Search and filter LGBTQ+ places by category, type, or keyword',
+			'Search and filter LGBTQ+ places by category, type, keyword, or city',
 		inputSchema: z.object({
 			query: z
 				.string()
@@ -87,21 +102,72 @@ const chatTools = {
 				.enum(['current', 'historical'])
 				.optional()
 				.describe('Place type filter'),
+			city: z
+				.enum(['la', 'sf', 'nyc', 'miami'])
+				.optional()
+				.describe('City to search within'),
 		}),
 		execute: async (params: {
 			query?: string;
 			category?: string;
 			type?: string;
+			city?: string;
 		}) => searchPlaces(params),
 	}),
 	getPlaceDetails: tool({
-		description: 'Get detailed information about a specific place',
+		description:
+			'Get detailed information about a place including events, figures, movements, and community tags',
 		inputSchema: z.object({
 			name: z
 				.string()
 				.describe('Name of the place to get details for'),
 		}),
 		execute: async ({ name }: { name: string }) => getPlaceDetails(name),
+	}),
+	exploreMovement: tool({
+		description:
+			'Find all places connected to a specific LGBTQ+ movement (e.g. stonewall, aids_activism, trans_rights, gay_liberation, marriage_equality, pride, drag_culture, ballroom_culture, homophile_movement)',
+		inputSchema: z.object({
+			movement: z
+				.string()
+				.describe('Movement identifier (e.g. "stonewall", "aids_activism", "trans_rights")'),
+		}),
+		execute: async ({ movement }: { movement: string }) =>
+			exploreMovement(movement),
+	}),
+	findFigures: tool({
+		description:
+			'Search for historical figures connected to LGBTQ+ places (e.g. Marsha P. Johnson, Harvey Milk)',
+		inputSchema: z.object({
+			query: z
+				.string()
+				.describe('Name or partial name of a historical figure'),
+		}),
+		execute: async ({ query }: { query: string }) => findFigures(query),
+	}),
+	browseTimeline: tool({
+		description:
+			'Find historical events that occurred within a year range across all places',
+		inputSchema: z.object({
+			startYear: z
+				.number()
+				.describe('Start year (e.g. 1960)'),
+			endYear: z
+				.number()
+				.describe('End year (e.g. 1975)'),
+		}),
+		execute: async ({ startYear, endYear }: { startYear: number; endYear: number }) =>
+			browseTimeline(startYear, endYear),
+	}),
+	filterByCommunity: tool({
+		description:
+			'Find places tagged with a specific community (e.g. lesbian, trans, bipoc_queer, drag, leather, two_spirit)',
+		inputSchema: z.object({
+			tag: z
+				.string()
+				.describe('Community tag (e.g. "lesbian", "trans", "bipoc_queer")'),
+		}),
+		execute: async ({ tag }: { tag: string }) => filterByCommunity(tag),
 	}),
 };
 
