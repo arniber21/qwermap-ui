@@ -4,7 +4,12 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function applyRetroColors(map: any) {
-	const layers = map.getStyle().layers;
+	let layers;
+	try {
+		layers = map.getStyle().layers;
+	} catch {
+		return;
+	}
 	if (!layers) return;
 
 	for (const layer of layers) {

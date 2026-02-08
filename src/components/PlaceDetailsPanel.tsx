@@ -15,7 +15,7 @@ export default function PlaceDetailsPanel() {
 	const { handleUpvote, isUpvoted } = useUpvote();
 	const [expanded, setExpanded] = useState(false);
 
-	const isOpen = selectedPlace !== null || detailLoading;
+	const isOpen = true;
 
 	// Close on Escape
 	useEffect(() => {
@@ -44,8 +44,8 @@ export default function PlaceDetailsPanel() {
 					animate="visible"
 					exit="exit"
 					className={cn(
-						'fixed top-14 right-0 bottom-0 w-96 max-w-full z-30',
-						'bg-surface-elevated shadow-xl border-l border-border',
+						'fixed top-20 right-6 bottom-6 w-[28rem] max-w-full z-30',
+						'bg-surface-elevated/90 backdrop-blur-md shadow-xl border border-border rounded-3xl',
 						'overflow-y-auto'
 					)}
 					role="complementary"
@@ -54,6 +54,28 @@ export default function PlaceDetailsPanel() {
 					{detailLoading && !place && (
 						<div className="flex items-center justify-center h-64">
 							<div className="w-8 h-8 border-2 border-mauve border-t-transparent rounded-full animate-spin" />
+						</div>
+					)}
+
+					{!place && !detailLoading && (
+						<div className="h-full flex flex-col">
+							<div className="px-6 pt-6 pb-4 border-b border-border">
+								<h2 className="font-serif text-2xl font-semibold text-text-primary">
+									Place Details
+								</h2>
+								<p className="text-sm text-text-muted mt-1">
+									Select a place on the map to see its story,
+									safety score, and on-chain record.
+								</p>
+							</div>
+							<div className="flex-1 px-6 py-6">
+								<div className="rounded-2xl border border-dashed border-border p-4 bg-cream-light/60">
+									<p className="text-sm text-text-secondary">
+										Tip: Use Search to filter categories or
+										click a cluster to zoom in.
+									</p>
+								</div>
+							</div>
 						</div>
 					)}
 
@@ -78,7 +100,7 @@ export default function PlaceDetailsPanel() {
 								</div>
 							)}
 
-							<div className="p-5 flex flex-col gap-4">
+							<div className="p-6 flex flex-col gap-4">
 								{/* Close button */}
 								<button
 									onClick={() => setSelectedPlace(null)}
@@ -87,6 +109,21 @@ export default function PlaceDetailsPanel() {
 								>
 									<X size={18} />
 								</button>
+
+								{/* Prominent header */}
+								<div className="flex items-start justify-between gap-4">
+									<div>
+										<h2 className="font-serif text-2xl font-semibold text-text-primary leading-tight">
+											{place.name}
+										</h2>
+										{place.era && (
+											<p className="text-sm italic text-text-muted mt-1 flex items-center gap-1">
+												<Clock size={13} />
+												{place.era}
+											</p>
+										)}
+									</div>
+								</div>
 
 								{/* Badges */}
 								<div className="flex items-center gap-2 flex-wrap">
@@ -113,19 +150,6 @@ export default function PlaceDetailsPanel() {
 											? 'Historical'
 											: 'Active'}
 									</Badge>
-								</div>
-
-								{/* Name + era */}
-								<div>
-									<h2 className="font-serif text-xl font-semibold text-text-primary leading-tight">
-										{place.name}
-									</h2>
-									{place.era && (
-										<p className="text-sm italic text-text-muted mt-1 flex items-center gap-1">
-											<Clock size={13} />
-											{place.era}
-										</p>
-									)}
 								</div>
 
 								{/* Description */}
@@ -203,11 +227,16 @@ export default function PlaceDetailsPanel() {
 								</button>
 
 								{/* Transaction link */}
-								<div className="flex items-center justify-between pt-2 border-t border-border">
-									<span className="text-xs text-text-muted">
+								<div className="pt-2 border-t border-border">
+									<p className="text-xs uppercase tracking-wide text-text-muted mb-2">
 										On-chain record
-									</span>
-									<TxLink txId={place.transaction_id} />
+									</p>
+									<div className="flex items-center justify-between gap-3">
+										<span className="text-[11px] font-mono text-text-primary bg-cream-dark px-2 py-1 rounded-lg break-all">
+											{place.transaction_id}
+										</span>
+										<TxLink txId={place.transaction_id} />
+									</div>
 								</div>
 
 								{/* Created date */}

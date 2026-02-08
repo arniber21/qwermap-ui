@@ -8,7 +8,7 @@ interface ChatState {
 }
 
 export const useChatStore = create<ChatState>((set) => ({
-	isOpen: false,
+	isOpen: true,
 	toggleChat: () => set((s) => ({ isOpen: !s.isOpen })),
 	openChat: () => set({ isOpen: true }),
 	closeChat: () => set({ isOpen: false }),

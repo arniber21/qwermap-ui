@@ -9,24 +9,28 @@ export function useMapbox(
 ) {
 	const mapRef = useRef<mapboxgl.Map | null>(null);
 	const { setViewport, setMapFlyTo } = useMapStore();
+	const initial3D = useMapStore.getState().is3D;
 
 	useEffect(() => {
 		if (!containerRef.current || mapRef.current) return;
 
 		mapboxgl.accessToken = MAPBOX_TOKEN;
+		let cancelled = false;
 
 		const map = new mapboxgl.Map({
 			container: containerRef.current,
 			style: 'mapbox://styles/mapbox/light-v11',
 			center: [DEFAULT_CENTER.lng, DEFAULT_CENTER.lat],
 			zoom: DEFAULT_ZOOM,
-			pitch: 45,
-			bearing: -15,
+			pitch: initial3D ? 45 : 0,
+			bearing: initial3D ? -15 : 0,
 			attributionControl: false,
 			antialias: true,
 		});
 
-		map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+		map.dragRotate.enable();
+		map.touchZoomRotate.enableRotation();
+
 		map.addControl(
 			new mapboxgl.AttributionControl({ compact: true }),
 			'bottom-right'
@@ -46,12 +50,16 @@ export function useMapbox(
 		});
 
 		// Apply retro colors when style loads
-		const handleStyleLoad = () => applyRetroColors(map);
+		const handleStyleLoad = () => {
+			if (cancelled) return;
+			applyRetroColors(map);
+		};
 		map.on('style.load', handleStyleLoad);
 		if (map.isStyleLoaded()) handleStyleLoad();
 
 		// Enable 3D buildings when style is ready
 		const add3DBuildings = () => {
+			if (cancelled) return;
 			if (map.getLayer('3d-buildings')) return;
 			const layers = map.getStyle().layers;
 			// Find the first symbol layer to insert 3D buildings below labels
@@ -76,6 +84,9 @@ export function useMapbox(
 					filter: ['==', 'extrude', 'true'],
 					type: 'fill-extrusion',
 					minzoom: 12,
+					layout: {
+						visibility: initial3D ? 'visible' : 'none',
+					},
 					paint: {
 						'fill-extrusion-color': '#FDF6EC',
 						'fill-extrusion-height': [
@@ -108,6 +119,9 @@ export function useMapbox(
 		mapRef.current = map;
 
 		return () => {
+			cancelled = true;
+			map.off('style.load', handleStyleLoad);
+			map.off('style.load', add3DBuildings);
 			map.remove();
 			mapRef.current = null;
 		};

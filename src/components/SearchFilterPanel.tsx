@@ -60,7 +60,7 @@ export default function SearchFilterPanel() {
 					initial="hidden"
 					animate="visible"
 					exit="exit"
-					className="fixed top-14 left-0 bottom-0 w-80 z-30 bg-surface-elevated shadow-xl border-r border-border flex flex-col overflow-hidden"
+					className="fixed top-20 left-6 bottom-6 w-80 z-30 bg-surface-elevated/90 backdrop-blur-md shadow-xl border border-border rounded-3xl flex flex-col overflow-hidden"
 					aria-label="Search and filter places"
 				>
 					{/* Header */}

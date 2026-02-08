@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Loader2, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatStore } from '@/store/chat-store';
+import { useSearchStore } from '@/store/search-store';
 import { sendChatMessage } from '@/api/chat';
 import type { SimpleChatMessage } from '@/api/chat';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ function nextId() {
 
 export default function ChatWidget() {
 	const { isOpen, toggleChat } = useChatStore();
+	const searchOpen = useSearchStore((s) => s.isOpen);
 	const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
 		{
 			id: 'welcome',
@@ -138,7 +140,10 @@ export default function ChatWidget() {
 				whileTap={{ scale: 0.95 }}
 				transition={{ type: 'spring', stiffness: 300, damping: 20 }}
 				className={cn(
-					'fixed bottom-6 left-6 z-30 w-14 h-14 rounded-full',
+					'fixed bottom-6 z-30 w-14 h-14 rounded-full',
+					searchOpen
+						? 'left-6 lg:left-[calc(20rem+1.5rem)]'
+						: 'left-6',
 					'flex items-center justify-center shadow-lg cursor-pointer',
 					'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mauve',
 					isOpen ? 'bg-text-primary text-white' : 'text-white'
@@ -168,7 +173,14 @@ export default function ChatWidget() {
 							stiffness: 300,
 							damping: 30,
 						}}
-						className="fixed bottom-24 left-6 z-40 w-96 h-[500px] max-h-[70vh] bg-surface-elevated rounded-2xl shadow-xl border border-border flex flex-col overflow-hidden"
+						className={cn(
+							'fixed bottom-24 z-40 w-96 h-[520px] max-h-[70vh]',
+							'bg-surface-elevated/90 backdrop-blur-md rounded-3xl shadow-xl border border-border',
+							'flex flex-col overflow-hidden',
+							searchOpen
+								? 'left-6 lg:left-[calc(20rem+1.5rem)]'
+								: 'left-6'
+						)}
 					>
 						{/* Header */}
 						<div className="px-4 py-3 border-b border-border bg-surface-elevated flex items-center gap-2">

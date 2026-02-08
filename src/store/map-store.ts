@@ -5,8 +5,11 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from '@/lib/constants';
 interface MapState {
 	viewport: Viewport;
 	layers: LayerVisibility;
+	is3D: boolean;
 	setViewport: (viewport: Viewport) => void;
 	toggleLayer: (layer: keyof LayerVisibility) => void;
+	toggle3D: () => void;
+	setIs3D: (is3D: boolean) => void;
 	flyTo: (lng: number, lat: number, zoom?: number) => void;
 	// This gets set by the map component so other code can trigger flyTo
 	_mapFlyTo: ((lng: number, lat: number, zoom: number) => void) | null;
@@ -21,11 +24,14 @@ export const useMapStore = create<MapState>((set, get) => ({
 	layers: {
 		safetyHeatmap: false,
 	},
+	is3D: true,
 	setViewport: (viewport) => set({ viewport }),
 	toggleLayer: (layer) =>
 		set((state) => ({
 			layers: { ...state.layers, [layer]: !state.layers[layer] },
 		})),
+	toggle3D: () => set((state) => ({ is3D: !state.is3D })),
+	setIs3D: (is3D) => set({ is3D }),
 	flyTo: (lng, lat, zoom = 15) => {
 		const mapFlyTo = get()._mapFlyTo;
 		if (mapFlyTo) mapFlyTo(lng, lat, zoom);

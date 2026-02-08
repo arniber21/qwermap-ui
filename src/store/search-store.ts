@@ -17,7 +17,7 @@ interface SearchState {
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
-	isOpen: false,
+	isOpen: true,
 	query: '',
 	selectedCategories: new Set(),
 	placeTypeFilter: 'all',

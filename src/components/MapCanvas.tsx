@@ -8,6 +8,7 @@ import { useFilteredPlaces } from '@/hooks/useFilteredPlaces';
 import { getPlaceDetail } from '@/api/places';
 import { getSafetyScores } from '@/api/safety';
 import { CATEGORY_CONFIG } from '@/data/categories';
+import MapControls from '@/components/MapControls';
 
 export default function MapCanvas() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -19,6 +20,7 @@ export default function MapCanvas() {
 
 	const viewport = useMapStore((s) => s.viewport);
 	const showHeatmap = useMapStore((s) => s.layers.safetyHeatmap);
+	const is3D = useMapStore((s) => s.is3D);
 	const { filteredPlaces } = useFilteredPlaces();
 	const { setSelectedPlace, setDetailLoading } = usePlacesStore();
 
@@ -36,8 +38,10 @@ export default function MapCanvas() {
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map) return;
+		let cancelled = false;
 
 		const updateBounds = () => {
+			if (cancelled) return;
 			const b = map.getBounds();
 			if (b) {
 				setMapBounds([
@@ -55,6 +59,7 @@ export default function MapCanvas() {
 		if (map.loaded()) updateBounds();
 
 		return () => {
+			cancelled = true;
 			map.off('load', updateBounds);
 			map.off('moveend', updateBounds);
 		};
@@ -64,6 +69,7 @@ export default function MapCanvas() {
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map || !map.loaded()) return;
+		let cancelled = false;
 
 		const geojson: GeoJSON.FeatureCollection = {
 			type: 'FeatureCollection',
@@ -75,6 +81,7 @@ export default function MapCanvas() {
 		};
 
 		if (!sourcesAdded.current) {
+			if (cancelled) return;
 			// Add places source + layers
 			map.addSource('places', {
 				type: 'geojson',
@@ -158,12 +165,17 @@ export default function MapCanvas() {
 			const source = map.getSource('places') as mapboxgl.GeoJSONSource;
 			if (source) source.setData(geojson);
 		}
+
+		return () => {
+			cancelled = true;
+		};
 	}, [clusters, mapRef]);
 
 	// Safety heatmap toggle
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map || !map.loaded()) return;
+		let cancelled = false;
 
 		if (showHeatmap) {
 			// Fetch and add safety data
@@ -171,6 +183,8 @@ export default function MapCanvas() {
 				lat: viewport.center.lat,
 				lon: viewport.center.lng,
 			}).then((scores) => {
+				if (cancelled) return;
+				if (!mapRef.current || mapRef.current !== map) return;
 				const heatGeoJSON: GeoJSON.FeatureCollection = {
 					type: 'FeatureCollection',
 					features: scores.map(([lon, lat, score]) => ({
@@ -183,63 +197,67 @@ export default function MapCanvas() {
 					})),
 				};
 
-				if (map.getSource('safety')) {
-					(map.getSource('safety') as mapboxgl.GeoJSONSource).setData(
-						heatGeoJSON
-					);
-				} else {
-					map.addSource('safety', {
-						type: 'geojson',
-						data: heatGeoJSON,
-					});
-				}
+				try {
+					if (map.getSource('safety')) {
+						(
+							map.getSource('safety') as mapboxgl.GeoJSONSource
+						).setData(heatGeoJSON);
+					} else {
+						map.addSource('safety', {
+							type: 'geojson',
+							data: heatGeoJSON,
+						});
+					}
 
-				if (!map.getLayer('safety-heatmap')) {
-					// Add heatmap below cluster layers
-					const firstClusterLayer = 'clusters';
-					map.addLayer(
-						{
-							id: 'safety-heatmap',
-							type: 'heatmap',
-							source: 'safety',
-							paint: {
-								'heatmap-weight': [
-									'interpolate',
-									['linear'],
-									['get', 'score'],
-									0,
-									0,
-									100,
-									1,
-								],
-								'heatmap-intensity': 0.6,
-								'heatmap-radius': 40,
-								'heatmap-opacity': 0.5,
-								'heatmap-color': [
-									'interpolate',
-									['linear'],
-									['heatmap-density'],
-									0,
-									'rgba(0,0,0,0)',
-									0.2,
-									'#E07A5F',
-									0.5,
-									'#F2CC8F',
-									0.8,
-									'#81B29A',
-									1,
-									'#81B29A',
-								],
+					if (!map.getLayer('safety-heatmap')) {
+						// Add heatmap below cluster layers
+						const firstClusterLayer = 'clusters';
+						map.addLayer(
+							{
+								id: 'safety-heatmap',
+								type: 'heatmap',
+								source: 'safety',
+								paint: {
+									'heatmap-weight': [
+										'interpolate',
+										['linear'],
+										['get', 'score'],
+										0,
+										0,
+										100,
+										1,
+									],
+									'heatmap-intensity': 0.6,
+									'heatmap-radius': 40,
+									'heatmap-opacity': 0.5,
+									'heatmap-color': [
+										'interpolate',
+										['linear'],
+										['heatmap-density'],
+										0,
+										'rgba(0,0,0,0)',
+										0.2,
+										'#E07A5F',
+										0.5,
+										'#F2CC8F',
+										0.8,
+										'#81B29A',
+										1,
+										'#81B29A',
+									],
+								},
 							},
-						},
-						firstClusterLayer
-					);
-				} else {
-					map.setLayoutProperty(
-						'safety-heatmap',
-						'visibility',
-						'visible'
-					);
+							firstClusterLayer
+						);
+					} else {
+						map.setLayoutProperty(
+							'safety-heatmap',
+							'visibility',
+							'visible'
+						);
+					}
+				} catch {
+					// Map may have been destroyed during navigation
 				}
 			});
 		} else {
@@ -247,7 +265,58 @@ export default function MapCanvas() {
 				map.setLayoutProperty('safety-heatmap', 'visibility', 'none');
 			}
 		}
+		return () => {
+			cancelled = true;
+		};
 	}, [showHeatmap, mapRef]); // eslint-disable-line react-hooks/exhaustive-deps
+
+	// Toggle 3D mode
+	useEffect(() => {
+		const map = mapRef.current;
+		if (!map) return;
+
+		const apply3D = () => {
+			try {
+				if (is3D) {
+					map.setPitch(45);
+					map.setBearing(-15);
+					map.dragRotate.enable();
+					map.touchZoomRotate.enableRotation();
+					if (map.getLayer('3d-buildings')) {
+						map.setLayoutProperty(
+							'3d-buildings',
+							'visibility',
+							'visible'
+						);
+					}
+				} else {
+					map.setPitch(0);
+					map.setBearing(0);
+					map.dragRotate.disable();
+					map.touchZoomRotate.disableRotation();
+					if (map.getLayer('3d-buildings')) {
+						map.setLayoutProperty(
+							'3d-buildings',
+							'visibility',
+							'none'
+						);
+					}
+				}
+			} catch {
+				// Map may be unmounted during navigation
+			}
+		};
+
+		if (map.isStyleLoaded()) {
+			apply3D();
+		} else {
+			map.once('style.load', apply3D);
+		}
+
+		return () => {
+			map.off('style.load', apply3D);
+		};
+	}, [is3D, mapRef]);
 
 	// Click handlers
 	const handleClick = useCallback(
@@ -330,6 +399,7 @@ export default function MapCanvas() {
 
 		return () => {
 			map.off('click', handleClick);
+			map.off('sourcedata', addHandlers);
 			interactiveLayers.forEach((layer) => {
 				if (map.getLayer(layer)) {
 					map.off('mouseenter', layer, setCursorPointer);
@@ -340,10 +410,13 @@ export default function MapCanvas() {
 	}, [mapRef, handleClick]);
 
 	return (
-		<div
-			ref={containerRef}
-			className="absolute inset-0 top-14"
-			aria-label="Interactive map showing LGBTQ+ places"
-		/>
+		<>
+			<div
+				ref={containerRef}
+				className="absolute inset-0 top-14"
+				aria-label="Interactive map showing LGBTQ+ places"
+			/>
+			<MapControls mapRef={mapRef} />
+		</>
 	);
 }

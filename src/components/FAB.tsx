@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePlacesStore } from '@/store/places-store';
 import { useSubmissionStore } from '@/store/submission-store';
 import { cn } from '@/lib/utils';
 
 export default function FAB() {
-	const selectedPlace = usePlacesStore((s) => s.selectedPlace);
 	const openModal = useSubmissionStore((s) => s.openModal);
 	const [isHovered, setIsHovered] = useState(false);
 
@@ -14,7 +12,7 @@ export default function FAB() {
 		<div
 			className={cn(
 				'fixed bottom-6 z-30 flex items-center',
-				selectedPlace ? 'right-[calc(24rem+1.5rem)]' : 'right-6'
+				'right-6 lg:right-[calc(28rem+1.5rem)]'
 			)}
 			style={{ transition: 'right 0.3s ease' }}
 		>

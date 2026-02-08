@@ -3,7 +3,7 @@ import Header from '@/components/Header';
 import MapCanvas from '@/components/MapCanvas';
 import PlaceDetailsPanel from '@/components/PlaceDetailsPanel';
 import FAB from '@/components/FAB';
-import SubmitPlaceModal from '@/components/SubmitPlaceModal';
+import SubmitPlacePanel from '@/components/SubmitPlacePanel';
 import SafetyLegend from '@/components/SafetyLegend';
 import SearchFilterPanel from '@/components/SearchFilterPanel';
 import FeaturedTab from '@/components/FeaturedTab';
@@ -22,7 +22,7 @@ function HomePage() {
 			<FeaturedTab />
 			<PlaceDetailsPanel />
 			<FAB />
-			<SubmitPlaceModal />
+			<SubmitPlacePanel />
 			<SafetyLegend />
 			<ChatWidget />
 		</div>

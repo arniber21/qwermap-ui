@@ -43,8 +43,8 @@ export default function FeaturedTab() {
 	};
 
 	return (
-		<div className="fixed top-[4.5rem] right-4 z-20 w-72">
-			<div className="bg-surface-elevated/95 backdrop-blur-md rounded-2xl shadow-lg border border-border overflow-hidden">
+		<div className="fixed top-20 right-6 lg:right-[30rem] z-20 w-72">
+			<div className="bg-surface-elevated/90 backdrop-blur-md rounded-3xl shadow-lg border border-border overflow-hidden">
 				{/* Header */}
 				<button
 					onClick={() => setIsExpanded(!isExpanded)}
