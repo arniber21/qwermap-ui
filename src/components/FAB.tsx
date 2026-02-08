@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSubmissionStore } from '@/store/submission-store';
+import { useUIStore } from '@/store/ui-store';
 import { cn } from '@/lib/utils';
 
 export default function FAB() {
-	const openModal = useSubmissionStore((s) => s.openModal);
+	const setLeftPanelTab = useUIStore((s) => s.setLeftPanelTab);
 	const [isHovered, setIsHovered] = useState(false);
 
 	return (
@@ -51,7 +51,7 @@ export default function FAB() {
 
 			{/* Main button */}
 			<motion.button
-				onClick={() => openModal()}
+				onClick={() => setLeftPanelTab('add')}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				initial={{ scale: 0 }}

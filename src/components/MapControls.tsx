@@ -24,7 +24,7 @@ export default function MapControls({ mapRef }: MapControlsProps) {
 	};
 
 	return (
-		<div className="fixed top-20 right-6 lg:right-[calc(28rem+1.5rem)] z-30 flex flex-col gap-2">
+		<div className="fixed bottom-24 right-6 lg:right-[calc(28rem+1.5rem)] z-30 flex flex-col gap-2">
 			<div className="bg-surface-elevated/90 backdrop-blur-md border border-border shadow-lg rounded-2xl overflow-hidden">
 				<button
 					onClick={handleZoomIn}

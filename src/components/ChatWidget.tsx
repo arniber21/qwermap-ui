@@ -14,12 +14,22 @@ interface DisplayMessage {
 	toolName?: string;
 }
 
+interface ChatWidgetProps {
+	embedded?: boolean;
+	className?: string;
+	variant?: 'card' | 'bare';
+}
+
 let msgCounter = 0;
 function nextId() {
 	return `msg-${++msgCounter}`;
 }
 
-export default function ChatWidget() {
+export default function ChatWidget({
+	embedded = false,
+	className,
+	variant = 'card',
+}: ChatWidgetProps) {
 	const { isOpen, toggleChat } = useChatStore();
 	const searchOpen = useSearchStore((s) => s.isOpen);
 	const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
@@ -36,6 +46,8 @@ export default function ChatWidget() {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
+	const open = embedded ? true : isOpen;
+
 	// Auto-scroll to bottom
 	useEffect(() => {
 		if (scrollRef.current) {
@@ -45,10 +57,10 @@ export default function ChatWidget() {
 
 	// Focus input when opening
 	useEffect(() => {
-		if (isOpen) {
+		if (open) {
 			requestAnimationFrame(() => inputRef.current?.focus());
 		}
-	}, [isOpen]);
+	}, [open]);
 
 	const handleSend = useCallback(async () => {
 		const text = input.trim();
@@ -129,6 +141,106 @@ export default function ChatWidget() {
 		}
 	}, [input, loading, chatHistory]);
 
+	const Window = (
+		<div
+			className={cn(
+				variant === 'card'
+					? 'bg-surface-elevated/90 backdrop-blur-md rounded-3xl shadow-xl border border-border'
+					: 'bg-transparent',
+				'flex flex-col overflow-hidden',
+				className
+			)}
+		>
+			{/* Header */}
+			<div className="px-4 py-3 border-b border-border bg-surface-elevated flex items-center gap-2">
+				<div
+					className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+					style={{
+						background: 'linear-gradient(135deg, #957DAD, #C3AED6)',
+					}}
+				>
+					<MessageCircle size={14} />
+				</div>
+				<div>
+					<p className="text-sm font-serif font-semibold text-text-primary">
+						QWERMap Guide
+					</p>
+					<p className="text-[10px] text-text-muted">Powered by Gemini</p>
+				</div>
+			</div>
+
+			{/* Messages */}
+			<div
+				ref={scrollRef}
+				className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3"
+			>
+				{displayMessages.map((msg) => {
+					if (msg.role === 'tool') {
+						return (
+							<div
+								key={msg.id}
+								className="flex items-start gap-2 text-xs text-text-muted"
+							>
+								<Wrench size={12} className="mt-0.5 shrink-0" />
+								<span>
+									<span className="font-medium">{msg.toolName}</span>: {msg.content}
+								</span>
+							</div>
+						);
+					}
+
+					const isUser = msg.role === 'user';
+					return (
+						<div
+							key={msg.id}
+							className={cn(
+								'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
+								isUser
+									? 'bg-mauve text-white self-end'
+									: 'bg-cream-dark text-text-primary'
+							)}
+						>
+							{msg.content}
+						</div>
+					);
+				})}
+				{loading && (
+					<div className="flex items-center gap-2 text-xs text-text-muted">
+						<Loader2 size={12} className="animate-spin" />
+						Thinking...
+					</div>
+				)}
+			</div>
+
+			{/* Input */}
+			<div className="border-t border-border px-4 py-3">
+				<div className="flex items-center gap-2">
+					<input
+						ref={inputRef}
+						type="text"
+						placeholder="Ask QWERMap..."
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter') handleSend();
+						}}
+						className="flex-1 px-3 py-2 rounded-xl bg-cream-dark border border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-mauve/40"
+					/>
+					<button
+						onClick={handleSend}
+						disabled={loading}
+						className="w-9 h-9 rounded-xl bg-mauve text-white flex items-center justify-center hover:bg-mauve-dark transition-colors disabled:opacity-70"
+						aria-label="Send message"
+					>
+						<Send size={16} />
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+
+	if (embedded) return Window;
+
 	return (
 		<>
 			{/* Toggle button */}
@@ -141,9 +253,7 @@ export default function ChatWidget() {
 				transition={{ type: 'spring', stiffness: 300, damping: 20 }}
 				className={cn(
 					'fixed bottom-6 z-30 w-14 h-14 rounded-full',
-					searchOpen
-						? 'left-6 lg:left-[calc(20rem+1.5rem)]'
-						: 'left-6',
+					searchOpen ? 'left-6 lg:left-[calc(20rem+1.5rem)]' : 'left-6',
 					'flex items-center justify-center shadow-lg cursor-pointer',
 					'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mauve',
 					isOpen ? 'bg-text-primary text-white' : 'text-white'
@@ -163,7 +273,7 @@ export default function ChatWidget() {
 
 			{/* Chat window */}
 			<AnimatePresence>
-				{isOpen && (
+				{open && (
 					<motion.div
 						initial={{ opacity: 0, scale: 0.9, y: 20 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -175,132 +285,12 @@ export default function ChatWidget() {
 						}}
 						className={cn(
 							'fixed bottom-24 z-40 w-96 h-[520px] max-h-[70vh]',
-							'bg-surface-elevated/90 backdrop-blur-md rounded-3xl shadow-xl border border-border',
-							'flex flex-col overflow-hidden',
 							searchOpen
 								? 'left-6 lg:left-[calc(20rem+1.5rem)]'
 								: 'left-6'
 						)}
 					>
-						{/* Header */}
-						<div className="px-4 py-3 border-b border-border bg-surface-elevated flex items-center gap-2">
-							<div
-								className="w-8 h-8 rounded-full flex items-center justify-center text-white"
-								style={{
-									background:
-										'linear-gradient(135deg, #957DAD, #C3AED6)',
-								}}
-							>
-								<MessageCircle size={14} />
-							</div>
-							<div>
-								<p className="text-sm font-serif font-semibold text-text-primary">
-									QWERMap Guide
-								</p>
-								<p className="text-[10px] text-text-muted">
-									Powered by Gemini
-								</p>
-							</div>
-						</div>
-
-						{/* Messages */}
-						<div
-							ref={scrollRef}
-							className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3"
-						>
-							{displayMessages.map((msg) => {
-								if (msg.role === 'tool') {
-									return (
-										<div
-											key={msg.id}
-											className="flex items-start gap-2 text-xs text-text-muted"
-										>
-											<Wrench
-												size={12}
-												className="mt-0.5 shrink-0"
-											/>
-											<span>
-												<span className="font-medium">
-													{msg.toolName}
-												</span>
-												: {msg.content}
-											</span>
-										</div>
-									);
-								}
-
-								const isUser = msg.role === 'user';
-								return (
-									<div
-										key={msg.id}
-										className={cn(
-											'max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed',
-											isUser
-												? 'self-end text-white rounded-br-md'
-												: 'self-start bg-cream-dark text-text-primary rounded-bl-md'
-										)}
-										style={
-											isUser
-												? {
-														background:
-															'linear-gradient(135deg, #957DAD, #a98bbf)',
-													}
-												: undefined
-										}
-									>
-										{msg.content}
-									</div>
-								);
-							})}
-							{loading && (
-								<div className="self-start flex items-center gap-2 text-text-muted text-sm px-3.5 py-2.5">
-									<Loader2
-										size={14}
-										className="animate-spin"
-									/>
-									Thinking...
-								</div>
-							)}
-						</div>
-
-						{/* Input */}
-						<div className="px-3 py-3 border-t border-border">
-							<div className="flex items-center gap-2">
-								<input
-									ref={inputRef}
-									type="text"
-									value={input}
-									onChange={(e) => setInput(e.target.value)}
-									onKeyDown={(e) => {
-										if (e.key === 'Enter' && !e.shiftKey) {
-											e.preventDefault();
-											handleSend();
-										}
-									}}
-									placeholder="Ask about places..."
-									disabled={loading}
-									className="flex-1 px-3 py-2 rounded-xl bg-cream-dark border border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-mauve/40 disabled:opacity-60"
-								/>
-								<button
-									onClick={handleSend}
-									disabled={!input.trim() || loading}
-									className={cn(
-										'p-2 rounded-xl transition-all cursor-pointer',
-										'disabled:opacity-40 disabled:cursor-default',
-										'text-white'
-									)}
-									style={{
-										background:
-											input.trim() && !loading
-												? 'linear-gradient(135deg, #957DAD, #C3AED6)'
-												: '#9490A0',
-									}}
-									aria-label="Send message"
-								>
-									<Send size={16} />
-								</button>
-							</div>
-						</div>
+						{Window}
 					</motion.div>
 				)}
 			</AnimatePresence>

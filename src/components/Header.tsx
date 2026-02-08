@@ -2,13 +2,14 @@ import { Link } from '@tanstack/react-router';
 import { MapPin, Shield, Info, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMapStore } from '@/store/map-store';
-import { useSearchStore } from '@/store/search-store';
+import { useUIStore } from '@/store/ui-store';
 import { cn } from '@/lib/utils';
 
 export default function Header() {
 	const { layers, toggleLayer } = useMapStore();
-	const searchOpen = useSearchStore((s) => s.isOpen);
-	const toggleSearch = useSearchStore((s) => s.togglePanel);
+	const leftPanelTab = useUIStore((s) => s.leftPanelTab);
+	const setLeftPanelTab = useUIStore((s) => s.setLeftPanelTab);
+	const openAbout = useUIStore((s) => s.openAbout);
 
 	return (
 		<motion.header
@@ -29,16 +30,16 @@ export default function Header() {
 				{/* Actions */}
 				<div className="flex items-center gap-2">
 					<button
-						onClick={toggleSearch}
+						onClick={() => setLeftPanelTab('search')}
 						className={cn(
 							'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium',
 							'transition-all duration-[var(--transition-fast)] cursor-pointer',
-							searchOpen
+							leftPanelTab === 'search'
 								? 'bg-mauve text-white shadow-sm'
 								: 'bg-cream-dark text-text-secondary hover:bg-border'
 						)}
 						aria-label="Toggle search panel"
-						aria-pressed={searchOpen}
+						aria-pressed={leftPanelTab === 'search'}
 					>
 						<Search size={15} />
 						<span className="hidden sm:inline">Search</span>
@@ -58,14 +59,14 @@ export default function Header() {
 						<Shield size={15} />
 						<span className="hidden sm:inline">Safety Map</span>
 					</button>
-					<Link
-						to="/about"
-						className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-text-secondary hover:bg-cream-dark transition-colors no-underline"
+					<button
+						onClick={openAbout}
+						className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-text-secondary hover:bg-cream-dark transition-colors cursor-pointer"
 						aria-label="About QWERMap"
 					>
 						<Info size={15} />
 						<span className="hidden sm:inline">About</span>
-					</Link>
+					</button>
 				</div>
 			</div>
 		</motion.header>
